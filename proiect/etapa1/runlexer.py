@@ -20,7 +20,8 @@ class DFA:
 
         for i in steps:
             step = i.split(',')
-            self.delta[int(step[0]), int(step[2])] = step[1].replace("\'", '')
+            self.delta[int(step[0]), int(step[2])] = escapeBackslashes(
+                step[1].replace("\'", ''))
             if (int(step[0]) not in self.states):
                 self.states.append(int(step[0]))
             if (int(step[2]) not in self.states):
@@ -91,6 +92,10 @@ def splitByDFA(lexer):
         return listOfDFAs
 
 
+def escapeBackslashes(string):
+    return string.replace('\\n', '\n')
+
+
 def createDFAs(listOfDFAs):
     DFAs = []
     for myDFA in listOfDFAs:
@@ -98,7 +103,8 @@ def createDFAs(listOfDFAs):
         steps = []
         for i in range(3, len(lines) - 1):
             steps.append(lines[i])
-        DFAs.append(DFA(lines[0], lines[1], steps, lines.pop(), lines[2]))
+        DFAs.append(
+            DFA(escapeBackslashes(lines[0]), lines[1], steps, lines.pop(), lines[2]))
     return DFAs
 
 
@@ -153,11 +159,13 @@ def runlexer(lexer, finput, foutput):
             rejected = 0
             longestMatchName = ''
             longestMatch = ''
+            accepted = dict(reversed(list(accepted.items())))
             for key, value in accepted.items():
                 if len(value) > len(longestMatch):
                     longestMatch = value
                     longestMatchName = key
-            f.write(longestMatchName + " " + longestMatch + "\n")
+            f.write(longestMatchName + " " +
+                    repr(longestMatch).replace("\'", '') + "\n")
             accepted.clear()
             for a in DFAS:
                 a.seekingState['rejected'] = False
@@ -165,7 +173,7 @@ def runlexer(lexer, finput, foutput):
                 a.isSinkState = False
     for a in DFAS:
         if(not a.lastAccepted == ''):
-            f.write(a.name + " " + a.lastAccepted)
+            f.write(a.name + " " + repr(a.lastAccepted).replace("\'", ''))
     f.close()
 
 
