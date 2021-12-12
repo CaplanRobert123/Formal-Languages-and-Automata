@@ -1,7 +1,8 @@
 SPACE  
-TOKEN4 ecab
+TOKEN5 ecab
 SPACE  
 TOKEN3 cdef
 TOKEN5 abcde
 SPACE  
-TOKEN2 abcTOKEN5 abc
+TOKEN2 abc
+TOKEN5 abc

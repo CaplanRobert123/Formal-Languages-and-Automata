@@ -96,10 +96,11 @@ def escapeBackslashes(string):
     return string.replace('\\n', '\n')
 
 
-def createDFAs(listOfDFAs):
+def createDFAs(listOfDFAs, accepted):
     DFAs = []
     for myDFA in listOfDFAs:
         lines = myDFA.splitlines()
+        accepted[lines[1]] = ''
         steps = []
         for i in range(3, len(lines) - 1):
             steps.append(lines[i])
@@ -117,11 +118,11 @@ def readInput(finput):
 
 def runlexer(lexer, finput, foutput):
     f = open(foutput, 'w')
-    strings = splitByDFA(lexer)
-    DFAS = createDFAs(strings)
     lastFoundIdx = 0
     accepted = {}
     input = readInput(finput)
+    strings = splitByDFA(lexer)
+    DFAS = createDFAs(strings, accepted)
     rejected = 0
     idx = 0
     while idx < len(input):
@@ -159,7 +160,7 @@ def runlexer(lexer, finput, foutput):
             rejected = 0
             longestMatchName = ''
             longestMatch = ''
-            accepted = dict(reversed(list(accepted.items())))
+            # accepted = dict(reversed(list(accepted.items())))
             for key, value in accepted.items():
                 if len(value) > len(longestMatch):
                     longestMatch = value
@@ -173,13 +174,13 @@ def runlexer(lexer, finput, foutput):
                 a.isSinkState = False
     for a in DFAS:
         if(not a.lastAccepted == ''):
-            f.write(a.name + " " + repr(a.lastAccepted).replace("\'", ''))
+            f.write(a.name + " " + repr(a.lastAccepted).replace("\'", '') + "\n")
     f.close()
 
 
 def main():
-    runlexer("/home/robert/LFA/proiect/etapa1/tests/T1/T1.4/T1.4.lex",
-             "/home/robert/LFA/proiect/etapa1/tests/T1/T1.4/input/T1.4.5.in", "output.out")
+    runlexer("/home/robert/LFA/proiect/etapa1/tests/T1/T1.10/T1.10.lex",
+             "/home/robert/LFA/proiect/etapa1/tests/T1/T1.10/input/T1.10.10.in", "output.out")
 
 
 if __name__ == "__main__":

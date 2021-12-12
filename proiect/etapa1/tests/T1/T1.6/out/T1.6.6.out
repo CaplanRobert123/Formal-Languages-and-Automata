@@ -5,4 +5,5 @@ SPACE
 APLUSBCD abcd
 BCSD bcd
 BORCS bccb
-DS dBCSD d
+DS d
+BCSD d

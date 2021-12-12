@@ -7,4 +7,5 @@ APLUSBCD abcd
 SPACE  
 BCSD bcd
 DSTARACS dac
-DS ddBCSD d
+DS dd
+BCSD d

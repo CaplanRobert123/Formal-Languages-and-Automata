@@ -2,7 +2,7 @@ PATTERN4 edaffffaaedaffedaffaedaff
 SPACE  
 PATTERN5 acccdbdbdbadfdbcfddccfdcf
 NEWLINE \n
-PATTERN5 dbdbdbddbdcdcdcdcdcdcdcdc
+PATTERN2 dbdbdbddbdcdcdcdcdcdcdcdc
 NEWLINE \n
 PATTERN4 edafdaedafedafedafdaaedaf
 SPACE  

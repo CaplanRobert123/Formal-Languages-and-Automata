@@ -1,8 +1,8 @@
 PATTERN3 edbeedbdbdbeeeffdbeefdbdb
 SPACE  
-PATTERN5 aaabaadcadcdcbdcababababdc
+PATTERN2 aaabaadcadcdcbdcababababdc
 NEWLINE \n
 PATTERN1 ebbeaeeecacacaccacaccaaaa
 NEWLINE \n
-PATTERN5 bcaaccaaccaaaacaccccaacac
+PATTERN1 bcaaccaaccaaaacaccccaacac
 NEWLINE \n

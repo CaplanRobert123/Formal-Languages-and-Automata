@@ -1,8 +1,9 @@
-ABPLUSC ab
+ABSTAR ab
 BORCS bcbccb
 SPACE  
-CBSAR cbcbcb
+BORCS cbcbcb
 SPACE  
 BORCS bcbcbc
 SPACE  
-BORCS cC c
+BORCS c
+C c

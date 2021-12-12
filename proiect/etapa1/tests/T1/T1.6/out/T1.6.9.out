@@ -1,9 +1,9 @@
 APLUSBCD abcd
 BORCS bbc
-BCSD d
+DS d
 BORCS c
 DSTARACS dacac
-BCSD d
+DS d
 ABS abab
 BORCS c
 ABC abc
