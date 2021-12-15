@@ -3,8 +3,8 @@ import sys
 EPS = 'ε'
 
 
-def increaseStates(n):
-    return n + 2
+def increaseStates(n, increaseNumber):
+    return n + increaseNumber
 
 
 class Expr:
@@ -18,10 +18,10 @@ class Expr:
 class Var(Expr):
     def __init__(self, value):
         self.value = value
-        self.initialState = 1
-        self.finalState = 2
+        self.initialState = 0
+        self.finalState = 1
         self.alphabet = [value]
-        self.states = [1, 2]
+        self.states = [0, 1]
         self.delta = {}
 
         self.delta[self.states[0], self.states[1]] = value
@@ -76,43 +76,123 @@ class Union(Expr):
         self.expr1 = expr1
         self.expr2 = expr2
         self.initialState = 0
-        self.finalState = max(expr1.finalState, expr2.finalState) + 1
-        self.alphabet = list(expr1.alphabet) + list(expr2.alphabet)
-        self.states = list(expr1.states) + list(expr2.states)
-        self.delta = dict(list(expr1.delta.items()) +
-                          list(expr2.delta.items()))
+        self.alphabet = []
+        self.states = []
+        self.delta = {}
 
-        # TODO: FIX DUPLICATE STATES, WRONG FINAL STATE, ADD TRANSITIONS 
+        for letter in expr1.alphabet + expr2.alphabet:
+            if letter not in self.alphabet:
+                self.alphabet.append(letter)
+
+        for state in list(expr1.states):
+            state = state + 1
+            self.states.append(state)
+        expr1NewInitialState = min(expr2.states) + 1
+        expr1NewFinalState = max(expr2.states) + 1
+
+        for state in list(expr2.states):
+            state = state + expr1NewFinalState + 1
+            self.states.append(state)
+        expr2NewInitialState = min(expr2.states) + expr1NewFinalState + 1
+        expr2NewFinalState = max(expr2.states) + expr1NewFinalState + 1
+
+        self.finalState = expr2NewFinalState + 1
+
+        for k, v in expr1.delta.items():
+            y = list(k)
+            y[0] = y[0] + 1
+            y[1] = y[1] + 1
+            x = tuple(y)
+            self.delta[x] = v
+
+        for k, v in expr2.delta.items():
+            y = list(k)
+            y[0] = y[0] + expr1NewFinalState + 1
+            y[1] = y[1] + expr1NewFinalState + 1
+            x = tuple(y)
+            self.delta[x] = v
+
         self.states.append(self.initialState)
         self.states.append(self.finalState)
-        self.delta[self.initialState, expr1.initialState] = EPS
-        self.delta[expr1.finalState, expr1.initialState] = EPS
-        self.delta[expr1.finalState, self.finalState] = EPS
+        self.delta[self.initialState, expr1NewInitialState] = EPS
+        self.delta[self.initialState, expr2NewInitialState] = EPS
+        self.delta[expr1NewFinalState, self.finalState] = EPS
+        self.delta[expr2NewFinalState, self.finalState] = EPS
         self.alphabet.append(EPS)
-
-        print(type(self.states))
-# {k: increaseStates(v) for k, v in expr.delta.items()}
-        # self.delta[self.states[0], self.states[1]] = EPS
 
         NFA(self.initialState, self.finalState,
             self.delta, self.alphabet, self.states)
 
     def __str__(self):
         return f"Alfabetul este: {self.alphabet}\n" \
-            f"Final States: {self.finalState}\n" \
+            f"Final State: {self.finalState}\n" \
             f"Initial State: {self.initialState}\n" \
             f"States: {self.states}\n" \
             f"Delta: {self.delta}\n" \
             # f"Expr: {self.expr}\n" \
 
+# TODO: CREATE CONCAT CLASS
+
 
 class Concat(Expr):
     def __init__(self, expr1, expr2):
-        self.expr1 = None
-        self.expr2 = None
+        self.expr1 = expr1
+        self.expr2 = expr2
+        self.initialState = 0
+        self.alphabet = []
+        self.states = []
+        self.delta = {}
+
+        for letter in expr1.alphabet + expr2.alphabet:
+            if letter not in self.alphabet:
+                self.alphabet.append(letter)
+
+        for state in list(expr1.states):
+            state = state + 1
+            self.states.append(state)
+        expr1NewInitialState = min(expr2.states) + 1
+        expr1NewFinalState = max(expr2.states) + 1
+
+        for state in list(expr2.states):
+            state = state + expr1NewFinalState + 1
+            self.states.append(state)
+        expr2NewInitialState = min(expr2.states) + expr1NewFinalState + 1
+        expr2NewFinalState = max(expr2.states) + expr1NewFinalState + 1
+
+        self.finalState = expr2NewFinalState + 1
+
+        for k, v in expr1.delta.items():
+            y = list(k)
+            y[0] = y[0] + 1
+            y[1] = y[1] + 1
+            x = tuple(y)
+            self.delta[x] = v
+
+        for k, v in expr2.delta.items():
+            y = list(k)
+            y[0] = y[0] + expr1NewFinalState + 1
+            y[1] = y[1] + expr1NewFinalState + 1
+            x = tuple(y)
+            self.delta[x] = v
+
+        self.states.append(self.initialState)
+        self.states.append(self.finalState)
+        self.delta[self.initialState, expr1NewInitialState] = EPS
+        self.delta[self.initialState, expr2NewInitialState] = EPS
+        self.delta[expr1NewFinalState, self.finalState] = EPS
+        self.delta[expr2NewFinalState, self.finalState] = EPS
+        self.alphabet.append(EPS)
+
+        NFA(self.initialState, self.finalState,
+            self.delta, self.alphabet, self.states)
 
     def __str__(self):
-        return f"{self.expr1}{self.expr2}"
+        return f"Alfabetul este: {self.alphabet}\n" \
+            f"Final State: {self.finalState}\n" \
+            f"Initial State: {self.initialState}\n" \
+            f"States: {self.states}\n" \
+            f"Delta: {self.delta}\n" \
+
 
 
 class NFA:
@@ -138,12 +218,15 @@ def parseRegularExpression(regularExpression):
         if elem == 'UNION':
             # if len(regularExpression) >= 3:
             # Union().reduceUnion()
-            varUnion = Union(Var(operationsStack.pop()),
-                             Var(operationsStack.pop()))
-            print(varUnion)
+            # varUnion = Union(Var(operationsStack.pop()),
+            #  Var(operationsStack.pop()))
+            # print(varUnion)
             operationsStack.append(elem)
             print('UNION')
         elif elem == 'CONCAT':
+            varConcat = Concat(Var(operationsStack.pop()),
+                               Var(operationsStack.pop()))
+            print(varConcat)
             operationsStack.append(elem)
             print('CONCAT')
         elif elem == 'STAR':
@@ -173,7 +256,7 @@ def main():
     f = open(foutput, "w")
     # nfa = NFA()
     # regularExpression = readRegularExpression(finput)
-    parseRegularExpression(regularExpression='a b UNION'.split())
+    parseRegularExpression(regularExpression='a b CONCAT'.split())
     # nfa.parseRegularExpression(regularExpression)
 
 
