@@ -145,8 +145,8 @@ class Union(Expr):
         for state in list(expr1.states):
             state = state + 1
             self.states.append(state)
-        expr1NewInitialState = min(expr2.states) + 1
-        expr1NewFinalState = max(expr2.states) + 1
+        expr1NewInitialState = min(expr1.states) + 1
+        expr1NewFinalState = max(expr1.states) + 1
 
         for state in list(expr2.states):
             state = state + expr1NewFinalState + 1
@@ -192,9 +192,6 @@ class Union(Expr):
 
 
 class Concat(Expr):
-    def __init__(self):
-        return None
-
     def __init__(self, expr1, expr2):
         self.expr1 = expr1
         self.expr2 = expr2
@@ -257,7 +254,7 @@ class NFA:
 
 class DFA:
     def __init__(self, alphabet, initialState, finalState, numberOfStatesNFA):
-        self.alphabet = alphabet
+        self.alphabet = list(alphabet)
         self.delta = {}
         self.initialState = initialState
         self.DFAfinalState = finalState
@@ -344,8 +341,8 @@ class DFA:
             self.transitionsToBeAdded = {}
             self.mapStates = []
             statesForIfToAddCheckCounter = 0
-            for i in range(len(self.alphabet)):
-                self.stateToBeAdded[i] = []
+            for iterat in range(len(self.alphabet)):
+                self.stateToBeAdded[iterat] = []
             listOfNFAStates = []
             currentStateToCheck = currentStateToCheck + 1
             self.addedLetters.clear()
@@ -386,7 +383,7 @@ class DFA:
                                 statesForIfToAddCheckCounter = statesForIfToAddCheckCounter + 1
             # print('STATE TO BE ADDED: ' + str(self.stateToBeAdded))
             # print('TRANSITIONS TO BE ADDED: ' + str(self.transitionsToBeAdded))
-            for i in range(len(self.stateToBeAdded) - 1):
+            for i in range(len(self.stateToBeAdded)):
                 listOfNFAStates = self.stateToBeAdded[i]
                 # print('list of NFA states: ' + str(listOfNFAStates))
                 # print('STATES: ' + str(self.states))
@@ -406,8 +403,8 @@ class DFA:
                             self.states[maps[1]] = list(listOfNFAStates)
                             self.delta[k, maps[1]
                                        ] = self.transitionsToBeAdded[k, maps[1]]
-            print("DELTA: " + str(self.delta))
-            print("STATES: " + str(self.states))
+            # print("DELTA: " + str(self.delta))
+            # print("STATES: " + str(self.states))
 
         for k in list(self.states.keys()):
             if self.states[k] == []:
@@ -441,22 +438,27 @@ def parseRegularExpression(regularExpression):
             prevNFA1 = operationsStack.pop()
             prevNFA2 = operationsStack.pop()
             unionNFA = Union(prevNFA1, prevNFA2)
+            print('UNION NFA: ' + str(unionNFA))
             operationsStack.append(unionNFA)
         elif elem == 'CONCAT':
             prevNFA1 = operationsStack.pop()
             prevNFA2 = operationsStack.pop()
             concatNFA = Concat(prevNFA1, prevNFA2)
+            print('concatNFA NFA: ' + str(concatNFA))
             operationsStack.append(concatNFA)
         elif elem == 'STAR':
             prevNFA = operationsStack.pop()
             starNFA = Star(prevNFA)
+            print('starNFA NFA: ' + str(starNFA))
             operationsStack.append(starNFA)
         elif elem == 'PLUS':
             prevNFA = operationsStack.pop()
             plusNFA = Plus(prevNFA)
+            print('plusNFA NFA: ' + str(plusNFA))
             operationsStack.append(plusNFA)
         else:
             varNFA = Var(elem)
+            print('varNFA NFA: ' + str(varNFA))
             operationsStack.append(varNFA)
     return operationsStack
 
@@ -465,6 +467,7 @@ def readRegularExpression(file):
     with open(file) as f:
         print(str(file))
         regularExpression = f.read().split(" ")
+        print(regularExpression)
         f.close()
         return regularExpression
 
@@ -473,19 +476,22 @@ def main():
     args = sys.argv[1:]
     finput = args[0]
     foutput = args[1]
-    f = open(foutput, "w")
-    regularExpression = readRegularExpression(
-        finput)
+    # regularExpression = readRegularExpression(
+        # "/home/robert/LFA/proiect/etapa2/tests/T2/in/T2.10.in")
+    regularExpression = readRegularExpression(finput)
     regularExpression.reverse()
     print(regularExpression)
+    f = open(foutput, "w")
+    # f = open("/home/robert/LFA/proiect/etapa2/tests/T2/out/T2.10.out", "w")
     finalNFA = parseRegularExpression(regularExpression).pop()
+    print(finalNFA)
     myDFA = DFA(finalNFA.alphabet, finalNFA.initialState,
                 finalNFA.finalState, len(finalNFA.states))
     myDFA.NFAtoDFA(finalNFA)
     for letter in myDFA.alphabet:
         f.write(str(letter))
     f.write("\n")
-    f.write(str(myDFA.statesCount + 2) + "\n")
+    f.write(str(len(myDFA.states) + 1) + "\n")
     f.write(str(myDFA.initialState) + "\n")
     for i in range(len(myDFA.finalStates)):
         if i == len(myDFA.finalStates) - 1:
