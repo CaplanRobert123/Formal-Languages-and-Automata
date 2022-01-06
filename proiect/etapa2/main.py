@@ -71,8 +71,6 @@ class Plus(Expr):
         if EPS not in self.alphabet:
             self.alphabet.append(EPS)
 
-        # print(type(self.states))
-
         NFA(self.initialState, self.finalState,
             self.delta, self.alphabet, self.states)
 
@@ -114,8 +112,6 @@ class Star(Expr):
         self.delta[self.initialState, self.finalState] = EPS
         if EPS not in self.alphabet:
             self.alphabet.append(EPS)
-
-        # print(type(self.states))
 
         NFA(self.initialState, self.finalState,
             self.delta, self.alphabet, self.states)
@@ -275,12 +271,12 @@ class DFA:
         for i in range(len(alphabet) * numberOfStatesNFA):
             self.states[i] = []
 
-    def EPSClosure(self, stateToLookFor, indexOfNewState, NFA):
+    def EPSClosureForInitialState(self, stateToLookFor, indexOfNewState, NFA):
         for k, v in NFA.delta.items():
             if k[0] == stateToLookFor:
                 if v == EPS:
                     self.states[indexOfNewState].append(k[1])
-                    self.EPSClosure(k[1], indexOfNewState, NFA)
+                    self.EPSClosureForInitialState(k[1], indexOfNewState, NFA)
 
     def EPSClosure2(self, stateToLookFor, indexOfNewState, NFA):
         for k, v in NFA.delta.items():
@@ -322,20 +318,20 @@ class DFA:
                 if v is not EPS:
                     if v in self.addedLetters:
                         self.states[self.addedLetters[v]].append(k[1])
-                        self.EPSClosure(k[1], self.addedLetters[v], NFA)
+                        self.EPSClosureForInitialState(
+                            k[1], self.addedLetters[v], NFA)
                     else:
                         self.statesCount = self.statesCount + 1
                         self.addedLetters[v] = self.statesCount
                         self.states[self.statesCount].append(k[1])
-                        # self.delta[0, statesCount].append(v)
                         self.delta[0, self.statesCount] = v
-                        self.EPSClosure(k[1], self.statesCount, NFA)
+                        self.EPSClosureForInitialState(
+                            k[1], self.statesCount, NFA)
                         self.newAddedStates.append(self.statesCount)
                 else:
                     self.states[0].append(k[1])
-                    self.EPSClosure(k[1], 0, NFA)
+                    self.EPSClosureForInitialState(k[1], 0, NFA)
 
-        # print(NFA.delta)
         for k, v in self.states.items():
             self.newAddedStates.clear()
             self.transitionsToBeAdded = {}
@@ -350,46 +346,28 @@ class DFA:
                 for kNFA, vNFA in NFA.delta.items():
                     if state == kNFA[0]:
                         if vNFA is not EPS:
-                            # self.states[currentStateToCheck + 1] = []
-                            # statesCount = statesCount + 1
-                            # print('IN vNFA is not EPS')
                             if vNFA in self.addedLetters:
-                                # print('IN vNFA is addedLetters')
                                 self.stateToBeAdded[self.addedLetters[vNFA]].append(
                                     kNFA[1])
-                                # self.states[self.addedLetters[vNFA]].append(
-                                # kNFA[1])
                                 self.EPSClosure2(
                                     kNFA[1], self.addedLetters[vNFA], NFA)
                             else:
-                                # print('IN vNFA is addedLetters ELSE')
                                 self.statesCount = self.statesCount + 1
-                                # self.states[statesCount] = []
                                 self.addedLetters[vNFA] = statesForIfToAddCheckCounter
-                                # print(statesCount)
                                 self.stateToBeAdded[statesForIfToAddCheckCounter].append(
                                     kNFA[1])
                                 self.mapStates.append(
                                     (statesForIfToAddCheckCounter, self.statesCount))
-                                # self.stateToBeAdded.append(kNFA[1])
-                                # self.states[statesCount].append(kNFA[1])
-                                ## self.delta[k, statesCount].append(vNFA)
-                                ## self.delta[k, statesCount] = vNFA
                                 self.transitionsToBeAdded[k,
                                                           self.statesCount] = vNFA
                                 self.EPSClosure2(
                                     kNFA[1], statesForIfToAddCheckCounter, NFA)
                                 self.newAddedStates.append(self.statesCount)
                                 statesForIfToAddCheckCounter = statesForIfToAddCheckCounter + 1
-            # print('STATE TO BE ADDED: ' + str(self.stateToBeAdded))
-            # print('TRANSITIONS TO BE ADDED: ' + str(self.transitionsToBeAdded))
             for i in range(len(self.stateToBeAdded)):
                 listOfNFAStates = self.stateToBeAdded[i]
-                # print('list of NFA states: ' + str(listOfNFAStates))
-                # print('STATES: ' + str(self.states))
                 if listOfNFAStates in self.states.values():
                     for key, value in self.states.items():
-                        # print('current value: ' + str(value))
                         if collections.Counter(listOfNFAStates) == collections.Counter(value) and value != []:
                             for maps in self.mapStates:
                                 if maps[0] == i:
@@ -403,29 +381,15 @@ class DFA:
                             self.states[maps[1]] = list(listOfNFAStates)
                             self.delta[k, maps[1]
                                        ] = self.transitionsToBeAdded[k, maps[1]]
-            # print("DELTA: " + str(self.delta))
-            # print("STATES: " + str(self.states))
 
         for k in list(self.states.keys()):
             if self.states[k] == []:
                 del self.states[k]
 
-        # for k, v in self.states.items():
-        #     if v == []:
-        #         del self.states[k]
-
         self.findFinalStates()
         self.transitionsToSinkState()
-        # self.transitionsToSinkState()
 
     def __str__(self):
-        # return f"Alfabetul este: {self.alphabet}\n" \
-        #     f"Number of states: {self.numberOfStates}\n" \
-        #     f"Initial State: {self.initialState}\n" \
-        #     f"Final States: {self.finalStates}\n" \
-        #     f"Sink state: {self.sinkState}\n" \
-        #     f"Delta: {self.delta}\n" \
-        #     f"States: {self.states}\n" \
         return f"States: {self.states}\n" \
             f"Delta: {self.delta}\n" \
 
@@ -476,13 +440,10 @@ def main():
     args = sys.argv[1:]
     finput = args[0]
     foutput = args[1]
-    # regularExpression = readRegularExpression(
-        # "/home/robert/LFA/proiect/etapa2/tests/T2/in/T2.10.in")
     regularExpression = readRegularExpression(finput)
     regularExpression.reverse()
     print(regularExpression)
     f = open(foutput, "w")
-    # f = open("/home/robert/LFA/proiect/etapa2/tests/T2/out/T2.10.out", "w")
     finalNFA = parseRegularExpression(regularExpression).pop()
     print(finalNFA)
     myDFA = DFA(finalNFA.alphabet, finalNFA.initialState,
@@ -499,15 +460,9 @@ def main():
         else:
             f.write(str(myDFA.finalStates[i]) + " ")
     f.write("\n")
-    iter = 0
     for transition, letter in myDFA.delta.items():
-        if iter == len(myDFA.delta) - 1:
-            f.write(str(transition[0]) + ",\'" + letter +
-                    "\'," + str(transition[1]) + "\n")
-        else:
-            f.write(str(transition[0]) + ",\'" + letter +
-                    "\'," + str(transition[1]) + "\n")
-        iter = iter + 1
+        f.write(str(transition[0]) + ",\'" + letter +
+                "\'," + str(transition[1]) + "\n")
     iter = 0
     for transition in myDFA.sinkStateTransitions:
         if iter == len(myDFA.sinkStateTransitions) - 1:
