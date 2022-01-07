@@ -267,9 +267,14 @@ class DFA:
         self.statesCount = 0
 
         if EPS in self.alphabet:
-            self.alphabet.remove(EPS)
+            self.alphabet.remove(EPS)  # nu avem voie EPS in DFA
         for i in range(len(alphabet) * numberOfStatesNFA):
+            # initializez states cu worst case pentru a nu modifica dict
             self.states[i] = []
+
+    ###
+    # Face EPS closure (cauta toate tranzitiile din starea curenta pe EPS)
+    ###
 
     def EPSClosureForInitialState(self, stateToLookFor, indexOfNewState, NFA):
         for k, v in NFA.delta.items():
@@ -282,15 +287,23 @@ class DFA:
         for k, v in NFA.delta.items():
             if k[0] == stateToLookFor:
                 if v == EPS:
-                    self.stateToBeAdded[indexOfNewState].append(k[1])
-                    self.EPSClosure2(k[1], indexOfNewState, NFA)
+                    if k[1] not in self.stateToBeAdded[indexOfNewState]:
+                        self.stateToBeAdded[indexOfNewState].append(k[1])
+                        self.EPSClosure2(k[1], indexOfNewState, NFA)
 
+    ###
+    # Returneaza o lista cu toate valorile pentru care poate avea tranzitii
+    ###
     def getAlphabetForCurrentState(self, state):
         alphabetForState = []
         for transition, letter in self.delta.items():
             if transition[0] == state:
                 alphabetForState.append(letter)
         return alphabetForState
+
+    ###
+    # Creeaza sink state-ul si adauga tranzitiile
+    ###
 
     def transitionsToSinkState(self):
         sinkState = max(self.states.keys()) + 1
@@ -302,6 +315,9 @@ class DFA:
         for letter in self.alphabet:
             self.sinkStateTransitions.append((sinkState, letter, sinkState))
 
+    ###
+    # Cauta in ce stari din DFA se afla stari finale din NFA, pentru a le face si pe acelea finale
+    ###
     def findFinalStates(self):
         for k, v in self.states.items():
             if self.DFAfinalState in v:
@@ -313,6 +329,7 @@ class DFA:
         self.states[0].append(0)
         self.statesCount = 0
 
+        # Creeaza starea initiala in DFA
         for k, v in NFA.delta.items():
             if k[0] == NFA.initialState:
                 if v is not EPS:
@@ -364,6 +381,7 @@ class DFA:
                                     kNFA[1], statesForIfToAddCheckCounter, NFA)
                                 self.newAddedStates.append(self.statesCount)
                                 statesForIfToAddCheckCounter = statesForIfToAddCheckCounter + 1
+            # TREBUIE SA VERIFIC DACA NU CUMVA URMATOAREA STARE ESTE EGALA CU ACTUALA SI MERGE TOT IN EA -> T12
             for i in range(len(self.stateToBeAdded)):
                 listOfNFAStates = self.stateToBeAdded[i]
                 if listOfNFAStates in self.states.values():
@@ -441,9 +459,11 @@ def main():
     finput = args[0]
     foutput = args[1]
     regularExpression = readRegularExpression(finput)
+    # regularExpression = readRegularExpression("/Users/robert.caplan/projects/Formal-Languages-and-Automata/proiect/etapa2/tests/T2/in/T2.12.in")
     regularExpression.reverse()
     print(regularExpression)
     f = open(foutput, "w")
+    # f = open("/Users/robert.caplan/projects/Formal-Languages-and-Automata/proiect/etapa2/tests/T2/out/T2.12.out", "w")
     finalNFA = parseRegularExpression(regularExpression).pop()
     print(finalNFA)
     myDFA = DFA(finalNFA.alphabet, finalNFA.initialState,
