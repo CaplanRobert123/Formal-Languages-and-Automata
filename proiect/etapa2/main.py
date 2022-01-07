@@ -349,7 +349,7 @@ class DFA:
                     self.states[0].append(k[1])
                     self.EPSClosureForInitialState(k[1], 0, NFA)
 
-        for k, v in self.states.items():
+        for k, v in self.states.items():  # itereaza prin state uri (key: state ul din DFA, value: state urile din NFA)
             self.newAddedStates.clear()
             self.transitionsToBeAdded = {}
             self.mapStates = []
@@ -359,11 +359,13 @@ class DFA:
             listOfNFAStates = []
             currentStateToCheck = currentStateToCheck + 1
             self.addedLetters.clear()
-            for state in v:
-                for kNFA, vNFA in NFA.delta.items():
+            for state in v:  # itereaza prin state urile care se afla in state ul de pe DFA
+                for kNFA, vNFA in NFA.delta.items():  # cauta in tranzitiile din NFA
+                    # daca state ul pe care il cautam face match pe tranzitia din NFA
                     if state == kNFA[0]:
+                        # daca nu este EPS (tratam daca este EPS in EPSClosure)
                         if vNFA is not EPS:
-                            if vNFA in self.addedLetters:
+                            if vNFA in self.addedLetters:  # daca a mai fost deja adaugata litera respectiva
                                 self.stateToBeAdded[self.addedLetters[vNFA]].append(
                                     kNFA[1])
                                 self.EPSClosure2(
@@ -383,9 +385,16 @@ class DFA:
                                 statesForIfToAddCheckCounter = statesForIfToAddCheckCounter + 1
             # TREBUIE SA VERIFIC DACA NU CUMVA URMATOAREA STARE ESTE EGALA CU ACTUALA SI MERGE TOT IN EA -> T12
             for i in range(len(self.stateToBeAdded)):
+                exists = False
                 listOfNFAStates = self.stateToBeAdded[i]
-                if listOfNFAStates in self.states.values():
+                for value in self.states.values():
+                    if collections.Counter(listOfNFAStates) == collections.Counter(value):
+                        exists = True
+                # if listOfNFAStates in self.states.values():
+                if exists == True:
                     for key, value in self.states.items():
+                        # if value == []:
+                        # continue
                         if collections.Counter(listOfNFAStates) == collections.Counter(value) and value != []:
                             for maps in self.mapStates:
                                 if maps[0] == i:
@@ -459,7 +468,8 @@ def main():
     finput = args[0]
     foutput = args[1]
     regularExpression = readRegularExpression(finput)
-    # regularExpression = readRegularExpression("/Users/robert.caplan/projects/Formal-Languages-and-Automata/proiect/etapa2/tests/T2/in/T2.12.in")
+    # regularExpression = readRegularExpression(
+    # "/Users/robert.caplan/projects/Formal-Languages-and-Automata/proiect/etapa2/tests/T2/in/T2.12.in")
     regularExpression.reverse()
     print(regularExpression)
     f = open(foutput, "w")
