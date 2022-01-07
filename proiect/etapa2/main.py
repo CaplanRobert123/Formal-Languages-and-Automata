@@ -280,8 +280,10 @@ class DFA:
         for k, v in NFA.delta.items():
             if k[0] == stateToLookFor:
                 if v == EPS:
-                    self.states[indexOfNewState].append(k[1])
-                    self.EPSClosureForInitialState(k[1], indexOfNewState, NFA)
+                    if k[1] not in self.states[indexOfNewState]:
+                        self.states[indexOfNewState].append(k[1])
+                        self.EPSClosureForInitialState(
+                            k[1], indexOfNewState, NFA)
 
     def EPSClosure2(self, stateToLookFor, indexOfNewState, NFA):
         for k, v in NFA.delta.items():
@@ -469,11 +471,11 @@ def main():
     foutput = args[1]
     regularExpression = readRegularExpression(finput)
     # regularExpression = readRegularExpression(
-    # "/Users/robert.caplan/projects/Formal-Languages-and-Automata/proiect/etapa2/tests/T2/in/T2.12.in")
+    # "/Users/robert.caplan/projects/Formal-Languages-and-Automata/proiect/etapa2/tests/T2/in/T2.20.in")
     regularExpression.reverse()
     print(regularExpression)
     f = open(foutput, "w")
-    # f = open("/Users/robert.caplan/projects/Formal-Languages-and-Automata/proiect/etapa2/tests/T2/out/T2.12.out", "w")
+    # f = open("/Users/robert.caplan/projects/Formal-Languages-and-Automata/proiect/etapa2/tests/T2/out/T2.20.out", "w")
     finalNFA = parseRegularExpression(regularExpression).pop()
     print(finalNFA)
     myDFA = DFA(finalNFA.alphabet, finalNFA.initialState,
