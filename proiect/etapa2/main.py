@@ -354,6 +354,7 @@ class DFA:
         for k, v in self.states.items():  # itereaza prin state uri (key: state ul din DFA, value: state urile din NFA)
             self.newAddedStates.clear()
             self.transitionsToBeAdded = {}
+            reduceMapping = False  # din cauza cum mapez starea care trebuie adaugata de starea care trebuie de fapt sa fie, in caz ca sunt stari duplicate, trebuie sa reduc maparea cu 1
             self.mapStates = []
             statesForIfToAddCheckCounter = 0
             for iterat in range(len(self.alphabet)):
@@ -385,18 +386,15 @@ class DFA:
                                     kNFA[1], statesForIfToAddCheckCounter, NFA)
                                 self.newAddedStates.append(self.statesCount)
                                 statesForIfToAddCheckCounter = statesForIfToAddCheckCounter + 1
-            # TREBUIE SA VERIFIC DACA NU CUMVA URMATOAREA STARE ESTE EGALA CU ACTUALA SI MERGE TOT IN EA -> T12
             for i in range(len(self.stateToBeAdded)):
                 exists = False
                 listOfNFAStates = self.stateToBeAdded[i]
                 for value in self.states.values():
                     if collections.Counter(listOfNFAStates) == collections.Counter(value):
                         exists = True
-                # if listOfNFAStates in self.states.values():
+                        reduceMapping = True
                 if exists == True:
                     for key, value in self.states.items():
-                        # if value == []:
-                        # continue
                         if collections.Counter(listOfNFAStates) == collections.Counter(value) and value != []:
                             for maps in self.mapStates:
                                 if maps[0] == i:
@@ -407,9 +405,15 @@ class DFA:
                 else:
                     for maps in self.mapStates:
                         if maps[0] == i:
-                            self.states[maps[1]] = list(listOfNFAStates)
-                            self.delta[k, maps[1]
-                                       ] = self.transitionsToBeAdded[k, maps[1]]
+                            if reduceMapping == True:
+                                self.states[maps[1] -
+                                            1] = list(listOfNFAStates)
+                                self.delta[k, maps[1] - 1
+                                           ] = self.transitionsToBeAdded[k, maps[1]]
+                            else:
+                                self.states[maps[1]] = list(listOfNFAStates)
+                                self.delta[k, maps[1]
+                                           ] = self.transitionsToBeAdded[k, maps[1]]
 
         for k in list(self.states.keys()):
             if self.states[k] == []:
@@ -470,12 +474,9 @@ def main():
     finput = args[0]
     foutput = args[1]
     regularExpression = readRegularExpression(finput)
-    # regularExpression = readRegularExpression(
-    # "/Users/robert.caplan/projects/Formal-Languages-and-Automata/proiect/etapa2/tests/T2/in/T2.20.in")
     regularExpression.reverse()
     print(regularExpression)
     f = open(foutput, "w")
-    # f = open("/Users/robert.caplan/projects/Formal-Languages-and-Automata/proiect/etapa2/tests/T2/out/T2.20.out", "w")
     finalNFA = parseRegularExpression(regularExpression).pop()
     print(finalNFA)
     myDFA = DFA(finalNFA.alphabet, finalNFA.initialState,
