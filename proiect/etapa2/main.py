@@ -471,12 +471,15 @@ def readRegularExpression(file):
 
 def main():
     args = sys.argv[1:]
-    finput = args[0]
-    foutput = args[1]
-    regularExpression = readRegularExpression(finput)
+    # finput = args[0]
+    # foutput = args[1]
+    # regularExpression = readRegularExpression(finput)
+    regularExpression = readRegularExpression(
+        "/home/robert/LFA/proiect/etapa2/tests/T2/in/T2.20.in")
     regularExpression.reverse()
     print(regularExpression)
-    f = open(foutput, "w")
+    # f = open(foutput, "w")
+    f = open("/home/robert/LFA/proiect/etapa2/tests/T2/out/T2.20.out", "w")
     finalNFA = parseRegularExpression(regularExpression).pop()
     print(finalNFA)
     myDFA = DFA(finalNFA.alphabet, finalNFA.initialState,

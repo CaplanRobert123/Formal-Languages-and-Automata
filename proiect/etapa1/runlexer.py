@@ -29,12 +29,13 @@ class DFA:
 
     def changeState(self, character, f, accepted):
         found = 0
+        sinkStates = findSinkStates(self.states, self.delta)
         for key, value in self.delta.items():
             # print("key[0]: " +
             #   str(key[0]) + " key[1] " + str(key[1]) + " value " + str(value) + " character " + character + " current state " + str(self.currentState))
             # print("key[0]: " + str(type(key[0])) +
             #   " value: " + str(type(value)))
-            if (key[0] == self.currentState) and (value == character):
+            if (key[0] == self.currentState) and (value == character) and key[0] not in sinkStates:
                 if (self.seekingState['initial']):
                     self.seekingState['initial'] = False
                     self.seekingState['seeking'] = True
@@ -116,6 +117,14 @@ def readInput(finput):
         return input
 
 
+def findSinkStates(states, delta):
+    sinkStates = states
+    for key, value in delta.items():
+        if key[0] in sinkStates:
+            sinkStates.remove(key[0])
+    return sinkStates
+
+
 def runlexer(lexer, finput, foutput):
     f = open(foutput, 'w')
     lastFoundIdx = 0
@@ -136,11 +145,16 @@ def runlexer(lexer, finput, foutput):
                         rejected += 1
                         # print(a.name + " got rejected")
                 elif (a.seekingState['accepted']):
-                    lastFoundIdx = idx
                     a.changeState(input[idx], f, accepted)
                     if (a.isSinkState):
                         rejected += 1
-                        # print("REJECTED++ adica: " + str(rejected))
+                    lastFoundIdx = idx
+                    if (idx == len(input) - 1) and (a.seekingState['seeking'] == True):
+                        a.seekingState['seeking'] = False
+                        a.seekingState['rejected'] = True
+                        a.isSinkState = True
+                        rejected += 1
+                    # print("REJECTED++ adica: " + str(rejected))
                     # print(a.name + " has accepted")
                 elif (a.seekingState['seeking']):
                     if (a.currentState in a.finalStates):
@@ -154,21 +168,23 @@ def runlexer(lexer, finput, foutput):
                         if (a.isSinkState):
                             rejected += 1
         idx += 1
-        # print('rejected: ' + str(rejected))
+
         if(rejected == len(DFAS)):
             idx = lastFoundIdx
             rejected = 0
             longestMatchName = ''
             longestMatch = ''
-            # accepted = dict(reversed(list(accepted.items())))
             for key, value in accepted.items():
                 if len(value) > len(longestMatch):
                     longestMatch = value
                     longestMatchName = key
-            f.write(longestMatchName + " " +
-                    repr(longestMatch).replace("\'", '') + "\n")
+
+            if (longestMatch != '') and longestMatchName != '':
+                f.write(longestMatchName + " " +
+                        repr(longestMatch).replace("\'", '') + "\n")
             accepted.clear()
             for a in DFAS:
+                a.lastAccepted = ''
                 a.seekingState['rejected'] = False
                 a.seekingState['initial'] = True
                 a.isSinkState = False
@@ -179,8 +195,8 @@ def runlexer(lexer, finput, foutput):
 
 
 def main():
-    runlexer("/home/robert/LFA/proiect/etapa1/tests/T1/T1.10/T1.10.lex",
-             "/home/robert/LFA/proiect/etapa1/tests/T1/T1.10/input/T1.10.10.in", "output.out")
+    runlexer("/home/robert/LFA/proiect/etapa1/tests/T1/T1.4/T1.4.lex",
+             "/home/robert/LFA/proiect/etapa1/tests/T1/T1.4/input/T1.4.6.in", "output.out")
 
 
 if __name__ == "__main__":
