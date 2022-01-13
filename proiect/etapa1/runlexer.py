@@ -31,11 +31,7 @@ class DFA:
         found = 0
         sinkStates = findSinkStates(self.states, self.delta)
         for key, value in self.delta.items():
-            # print("key[0]: " +
-            #   str(key[0]) + " key[1] " + str(key[1]) + " value " + str(value) + " character " + character + " current state " + str(self.currentState))
-            # print("key[0]: " + str(type(key[0])) +
-            #   " value: " + str(type(value)))
-            if (key[0] == self.currentState) and (value == character) and key[0] not in sinkStates:
+            if (key[0] == self.currentState) and (value == character) and (key[1] not in sinkStates):
                 if (self.seekingState['initial']):
                     self.seekingState['initial'] = False
                     self.seekingState['seeking'] = True
@@ -49,24 +45,19 @@ class DFA:
                     self.seekingState['seeking'] = False
                     self.seekingState['accepted'] = True
                     accepted[self.name] = self.lastAccepted
-                # print('IM HERE ')
                 break
 
         if(found == 0):
-            # print('REJECTING because of: key[0] ' + str(key[0]) + " key[1] " + str(key[1]) + " value " + str(
-            # value) + " character " + character + " current state " + str(self.currentState))
             if (not self.lastAccepted == ''):
                 accepted[self.name] = self.lastAccepted
+            self.seekingState['initial'] = False
             self.seekingState['rejected'] = True
             self.seekingState['accepted'] = False
             self.seekingState['seeking'] = False
             self.isSinkState = True
-            # acceptedWords.append(self.lastAccepted)
             self.lastAccepted = ''
             self.currentWord = ''
             self.currentState = self.initialState
-        # print(self.name + " " + str(self.currentState))
-        # print("last accepted: " + self.lastAccepted)
 
     def __str__(self):
         return f"Alfabetul este: {self.alphabet}\n" \
@@ -135,8 +126,6 @@ def runlexer(lexer, finput, foutput):
     rejected = 0
     idx = 0
     while idx < len(input):
-        # print("idx: " + str(idx))
-        # print("i: " + input[idx])
         for a in DFAS:
             if (not a.seekingState['rejected']):
                 if (a.seekingState['initial']):
@@ -149,13 +138,6 @@ def runlexer(lexer, finput, foutput):
                     if (a.isSinkState):
                         rejected += 1
                     lastFoundIdx = idx
-                    if (idx == len(input) - 1) and (a.seekingState['seeking'] == True):
-                        a.seekingState['seeking'] = False
-                        a.seekingState['rejected'] = True
-                        a.isSinkState = True
-                        rejected += 1
-                    # print("REJECTED++ adica: " + str(rejected))
-                    # print(a.name + " has accepted")
                 elif (a.seekingState['seeking']):
                     if (a.currentState in a.finalStates):
                         a.seekingState['accepted'] = True
@@ -178,26 +160,32 @@ def runlexer(lexer, finput, foutput):
                 if len(value) > len(longestMatch):
                     longestMatch = value
                     longestMatchName = key
-
-            if (longestMatch != '') and longestMatchName != '':
-                f.write(longestMatchName + " " +
-                        repr(longestMatch).replace("\'", '') + "\n")
-            accepted.clear()
+                accepted[key] = ''
+            f.write(longestMatchName + " " +
+                    repr(longestMatch).replace("\'", '') + "\n")
             for a in DFAS:
                 a.lastAccepted = ''
                 a.seekingState['rejected'] = False
                 a.seekingState['initial'] = True
                 a.isSinkState = False
-    for a in DFAS:
-        if(not a.lastAccepted == ''):
-            f.write(a.name + " " + repr(a.lastAccepted).replace("\'", '') + "\n")
+    if (len(accepted) > 1):
+        longestMatchName = ''
+        longestMatch = ''
+        for key, value in accepted.items():
+            if len(value) > len(longestMatch):
+                longestMatch = value
+                longestMatchName = key
+        f.write(longestMatchName + " " +
+                repr(longestMatch).replace("\'", '') + "\n")
+        accepted.clear()
+        for a in DFAS:
+            a.lastAccepted = ''
+            a.seekingState['rejected'] = False
+            a.seekingState['initial'] = True
+            a.isSinkState = False
+    else:
+        for a in DFAS:
+            if(not a.lastAccepted == ''):
+                f.write(a.name + " " +
+                        repr(a.lastAccepted).replace("\'", '') + "\n")
     f.close()
-
-
-def main():
-    runlexer("/home/robert/LFA/proiect/etapa1/tests/T1/T1.4/T1.4.lex",
-             "/home/robert/LFA/proiect/etapa1/tests/T1/T1.4/input/T1.4.6.in", "output.out")
-
-
-if __name__ == "__main__":
-    main()

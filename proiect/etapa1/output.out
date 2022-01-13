@@ -1,8 +1,5 @@
-PATTERN3 edbeedbdbdbeeeffdbeefdbdb
+PATTERN4 101 101 
+PATTERN1 1 0
+PATTERN2 1010 
 SPACE  
-PATTERN2 aaabaadcadcdcbdcababababdc
-NEWLINE \n
-PATTERN1 ebbeaeeecacacaccacaccaaaa
-NEWLINE \n
-PATTERN1 bcaaccaaccaaaacaccccaacac
-NEWLINE \n
+PATTERN2  
